@@ -18,7 +18,7 @@ Methodology:
 ACTIONABLE: 
 - Hot topics: effects of stress, sleep, marijuana, weather, day of the week vs symptoms 
 - Just looking at severity of symptoms (trackable_value (1:4 for symptoms/conditions))
-- Jumping off point: predisone and abdominal pain
+- Jumping off point: correlation between predisone and abdominal pain
 
 ```{r}
 
