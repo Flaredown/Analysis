@@ -1,0 +1,158 @@
+---
+title: "Model_Selection(Nov_3_2016)"
+author: "Gertrude Cox"
+date: "11/3/2016"
+output: html_document
+---
+
+
+```{r}
+# library(ridge)
+library(MASS)
+library(glmnet)
+library(car)
+```
+
+```{r}
+fd <-read.csv("fd-export 3.csv", stringsAsFactors = F)	
+names(fd)
+class(fd)
+sapply(fd, class)
+
+```
+
+
+```{r}
+# Scale data
+#fd$age <- scale(fd$age,TRUE,TRUE)
+fd <- data.table(fd)
+
+```
+
+
+```{r}
+# Data exploration: Scatterplot matrix (response and features)
+scatterplot_matrix_full <- pairs(~trackable_value + cement+slag+ash+water+sp+coarse+fine,
+                            data=concrete, 
+                            main="Scatterplot Matrix of Concrete Data (Full Set)")
+scatterplot_matrix_full
+```
+
+```{r}
+# Set a seed to make the partition reproducible
+set.seed(10032016)
+```
+
+```{r}
+# Partition into training and test set
+bound <- floor((nrow(concrete)/4)*3)         
+concrete <- concrete[sample(nrow(concrete)), ]          
+train <- concrete[1:bound, ]             
+test <- concrete[(bound+1):nrow(concrete), ]   
+```
+
+```{r}
+# Run linear regression on training set
+full_reg <-lm(mpa~.,data=train)
+summary(full_reg)
+```
+
+```{r}
+#Plot residuals
+quartz("Plot of Residuals")
+plot(train$mpa, full_reg$residuals)
+```
+
+```{r}
+# Generate covariance matrix of predictors
+cov_matrix <- cov(train[,1:7])
+cov_matrix
+```
+
+```{r}
+# Compute Variance Inflation factor
+vif(lm(mpa~.,data=train)) 
+```
+
+```{r}
+# Run small model with only significant predictors from full regression
+subset_reg <-lm(mpa~cement+ash+water, data=train)
+summary(subset_reg)
+```
+
+```{r}
+# Reduced model, excluding predictors with high VIF
+vif(lm(mpa~.,data=train)) 
+subset_reg_vif <-lm(mpa~cement+sp+water+fine+slag, data=train)
+summary(subset_reg_vif)
+AIC(subset_reg_vif) # Akaike information criterion (AIC) 
+BIC(subset_reg_vif)
+```
+
+```{r}
+# Forward selection 
+## Perform forward selection
+
+# Step 1 Define null
+null=lm(mpa~1,data=train)
+null
+
+# Step 2 Define full
+full= lm(mpa~.,data=train)
+full
+
+# Fit forward model
+Output <- step(null, scope=list(lower=null, upper=full), direction="forward")
+Output
+```
+
+
+```{r}
+best_model <-lm(formula = mpa ~ cement + ash + water + sp + coarse + fine, 
+                data = test)
+
+best_model
+summary(best_model)
+AIC(best_model)
+BIC(best_model)
+```
+
+
+```{r}
+# After finding that one variable sp is not significant, tried an alternative
+last <- lm(formula = mpa ~ cement + ash + water + coarse + fine, 
+     data = train)
+summary(last)
+AIC(last)
+BIC(last)
+```
+
+```{r}
+test_alt <- lm(formula = mpa ~ cement + ash + water + coarse + fine, 
+           data = test)
+test_alt
+summary(test_alt)
+AIC(test_alt)
+BIC(test_alt)
+```
+
+```{r}
+library(car)
+vif(lm(mpa~.,data=train)) 
+subset_reg_vif <-lm(mpa~cement+sp+water+fine+slag, data=train)
+summary(subset_reg_vif)
+AIC(subset_reg_vif)
+BIC(subset_reg_vif)
+```
+
+```{r}
+best_model <-lm(formula = mpa ~ cement + ash + water + sp + coarse + fine, 
+                data = test)
+best_model
+summary(best_model)
+AIC(best_model)
+BIC(best_model)
+
+```
+
+\end{document}

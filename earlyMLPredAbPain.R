@@ -19,31 +19,27 @@ corr <- abdominal[(user_id%in%predUsers)]
 corr[, usedPred := 0]
 corr[(checkin_date%in%predDays & user_id%in%predUsers), usedPred := 1]
 
-# Get a simple correlation/model
+# Get a simple correlation
 corr <- corr[trackable_type %in% c("Symptom", "Condition")]
 corr$trackable_value <- as.numeric(corr$trackable_value)
 simpleCor <- cor(x = corr$usedPred, y= corr$trackable_value)
 model.lm <- lm(trackable_value ~ usedPred, data = corr)
 summary(model.lm)
 
-# Reshape data to get days since Pred
-  corr$checkin_date <- as.Date(corr$checkin_date)
-  corr <- corr[,][order(user_id, checkin_date)] 
-  corr <- unique(corr[, .(checkin_date, user_id, usedPred)])
-  corr[usedPred == 1, date := checkin_date]
-  corr[!is.na(date), diff := date- shift(date, -1), by = user_id]
-  
+# Unnecessary and unhelpful plot
+ggplot(corr, aes(x=usedPred, y=trackable_value)) + 
+  geom_point()
 
-setkey(corr, user_id, checkin_date)
-abdominal$checkin_date <- as.Date(abdominal$checkin_date)
-setkey(abdominal, user_id, checkin_date)
-full <- corr[abdominal]
-full$diff <- as.integer(full$diff)
-fullNoNA <- full[!is.na(diff) & trackable_type %in% c("Symtpom", "Condition")]
-fullNoNA$trackable_value <- as.integer(fullNoNA$trackable_value)
-fullNoNA <- fullNoNA[user_id %in% predUsers]
-cor(x = fullNoNA$diff, fullNoNA$trackable_value)
-model.lm <- lm(trackable_value ~ diff, data = fullNoNA)
-summary(model.lm)
+# Scatter Plot Matrix
+scatterplot_matrix_full <- pairs(~trackable_value + usedPred + age ,
+                                 data=corr, 
+                                 main="Scatterplot Matrix of FD Data (Full Set)")
 
-# look at users who are not loggina t all or if they really are not taking pred for that long
+bound <- floor((nrow(corr)/4)*3)         
+corr <- corr[sample(nrow(corr)), ]          
+train <- corr[1:bound, ]             
+test <- corr[(bound+1):nrow(corr), ]   
+
+# Run linear regression on training set
+full_reg <-lm(trackable_value~usedPred,data=train)
+summary(full_reg)

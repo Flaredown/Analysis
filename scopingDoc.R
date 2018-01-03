@@ -21,5 +21,6 @@
 
 # GOING FORWARD -----------------------------------------------------------
 # - input the CDAI (metric of disease severity)
+# Periodicity: looking at intervals of flareups per and user and the distribution of periodocity amongst users with a condition
 
 
