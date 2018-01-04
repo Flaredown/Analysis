@@ -31,7 +31,7 @@ summary(model.lm)
   corr <- corr[,][order(user_id, checkin_date)] 
   corr <- unique(corr[, .(checkin_date, user_id, usedPred)])
   corr[usedPred == 1, date := checkin_date]
-  corr[!is.na(date), diff := date- shift(date, -1), by = user_id]
+  corr[!is.na(date), diff := date - shift(date), by = user_id]
   
 
 setkey(corr, user_id, checkin_date)
