@@ -3,21 +3,23 @@
 # Date: 1/3/17
 
 # Inital loading
-fd <- read.csv("fd-export 3.csv", stringsAsFactors = F)
-fd <- data.table(fd)
+fd_full <- data.table(read.csv("fd-export 3.csv", stringsAsFactors = F))
+fd_full[, trackable_name := tolower(trackable_name)]
+# make a column scrubber
+
+# filter for migraines
+fd <- fd_full[grepl(x=trackable_name, pattern="migraine")]
 
 # find max pain by user  
 fd$trackable_value <- as.numeric(fd$trackable_value)
 fd$checkin_date <- as.Date(fd$checkin_date)
-fd[, maxPain := NA_real_]
-fd <- fd[trackable_type %in% c("symptom", "Condition"),
+fd <- fd[trackable_type %in% c("Symptom", "Condition"),
          maxPain := maxMissing(trackable_value), by = user_id]
 
 fd[, .N, by = user_id][order(N)]
-fdSC <- fd[user_id=="QEVuQwEAlNMIH8RXhjZvx6HzoW8iXQ==" & trackable_name == "Ulcerative colitis"]
+fdTest <- fd[user_id=="QEVuQwEAlNMIH8RXhjZvx6HzoW8iXQ==" & trackable_name == "Ulcerative colitis"]
 
-ggplot(fdSC, aes(checkin_date, trackable_value)) + 
-  geom_line() + xlab("") + ylab("Trackable Value") + geom_point()
+ggplot(fd, aes(checkin_date, maxPain)) + xlab("") + ylab("Trackable Value") + geom_point()
 
 sapply(fdSC, class)
 
