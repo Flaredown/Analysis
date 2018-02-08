@@ -1,11 +1,6 @@
 # Objective: Find baseline correlative relationship between logged instances of pred uptake and abdominal pain
 # Date: 12/27/17
 
-# Inital loading
-fd <- read.csv("fd-export 3.csv", stringsAsFactors = F)
-fd <- data.table(fd)
-
-
 # Get just the users who log abdominal pain and, of those, who uses pred
 abdominalPainUsers <- fd[grepl(x = trackable_name, pattern = "abdominal pain",ignore.case = T),user_id]
 abdominal <- fd[user_id%in%abdominalPainUsers]
@@ -27,12 +22,12 @@ model.lm <- lm(trackable_value ~ usedPred, data = corr)
 summary(model.lm)
 
 # Reshape data to get days since Pred
-  corr$checkin_date <- as.Date(corr$checkin_date)
-  corr <- corr[,][order(user_id, checkin_date)] 
-  corr <- unique(corr[, .(checkin_date, user_id, usedPred)])
-  corr[usedPred == 1, date := checkin_date]
-  corr[!is.na(date), diff := date - shift(date), by = user_id]
-  
+corr$checkin_date <- as.Date(corr$checkin_date)
+corr <- corr[,][order(user_id, checkin_date)] 
+corr <- unique(corr[, .(checkin_date, user_id, usedPred)])
+corr[usedPred == 1, date := checkin_date]
+corr[!is.na(date), diff := date - shift(date), by = user_id]
+
 
 setkey(corr, user_id, checkin_date)
 abdominal$checkin_date <- as.Date(abdominal$checkin_date)
@@ -45,5 +40,12 @@ fullNoNA <- fullNoNA[user_id %in% predUsers]
 cor(x = fullNoNA$diff, fullNoNA$trackable_value)
 model.lm <- lm(trackable_value ~ diff, data = fullNoNA)
 summary(model.lm)
+
+# curious to bring weather back on 
+# weather <- fd[, .(user_id, checkin_date, trackable_type = trackable_type[trackable_type == "Weather"])]
+# 
+# setkey(fd, user_id, checkin_date, trackable_type)
+# setkey(weather, user_id, checkin_date, trackable_type)
+# x <- weather[fd]
 
 # look at users who are not loggina t all or if they really are not taking pred for that long

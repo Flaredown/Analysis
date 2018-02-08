@@ -2,11 +2,6 @@
 # # Questions: when do you hit your highest point, for how long, and how frequently
 # Date: 1/3/17
 
-# Inital loading
-fd_full <- data.table(read.csv("fd-export 3.csv", stringsAsFactors = F))
-fd_full[, trackable_name := tolower(trackable_name)]
-# make a column scrubber
-
 # filter for migraines
 fd <- fd_full[grepl(x=trackable_name, pattern="migraine")]
 
@@ -16,6 +11,7 @@ fd$checkin_date <- as.Date(fd$checkin_date)
 fd <- fd[trackable_type %in% c("Symptom", "Condition"),
          maxPain := maxMissing(trackable_value), by = user_id]
 
+stop()
 fd[, .N, by = user_id][order(N)]
 fdTest <- fd[user_id=="QEVuQwEAlNMIH8RXhjZvx6HzoW8iXQ==" & trackable_name == "Ulcerative colitis"]
 
