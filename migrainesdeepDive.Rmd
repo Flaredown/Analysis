@@ -12,6 +12,8 @@ source("Controller.R")
 
 ## Initial Flaredown Exploration; Migraines
 
+# Basic summary stats: how many users, average usership, men vs. women, how many days per user, etc.
+
 # Periodicity
 ```{r cars}
 summary(cars)
